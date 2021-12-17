@@ -13,19 +13,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import kitchenpos.order.domain.OrderDao;
+import kitchenpos.order.domain.OrderRepository;
 import kitchenpos.table.domain.OrderTable;
-import kitchenpos.table.domain.OrderTableDao;
+import kitchenpos.table.domain.OrderTableRepository;
 
 @DisplayName("테이블 : 서비스 테스트")
 @ExtendWith(MockitoExtension.class)
 public class TableServiceTest {
 
 	@Mock
-	OrderDao orderDao;
+	OrderRepository orderRepository;
 
 	@Mock
-	OrderTableDao orderTableDao;
+	OrderTableRepository orderTableRepository;
 
 	@Mock
 	OrderTable orderTable;
@@ -37,7 +37,7 @@ public class TableServiceTest {
 	@Test
 	void createTable() {
 		// when
-		when(orderTableDao.save(orderTable)).thenReturn(orderTable);
+		when(orderTableRepository.save(orderTable)).thenReturn(orderTable);
 
 		// then
 		assertThat(tableService.create(orderTable)).isEqualTo(orderTable);
@@ -47,7 +47,7 @@ public class TableServiceTest {
 	@Test
 	void getList() {
 		// when
-		when(orderTableDao.findAll()).thenReturn(Collections.singletonList(orderTable));
+		when(orderTableRepository.findAll()).thenReturn(Collections.singletonList(orderTable));
 
 		// then
 		assertThat(tableService.list()).containsExactly(orderTable);
@@ -66,11 +66,11 @@ public class TableServiceTest {
 	@Test
 	void changeEmptyOrderStatusNotCompletion() {
 		// given
-		given(orderTableDao.findById(anyLong())).willReturn(Optional.of(orderTable));
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
 		given(orderTable.getTableGroupId()).willReturn(null);
 
 		// when
-		when(orderDao.existsByOrderTableIdAndOrderStatusIn(anyLong(), anyList())).thenReturn(true);
+		when(orderRepository.existsByOrderTableIdAndOrderStatusIn(anyLong(), anyList())).thenReturn(true);
 
 		// then
 		assertThatThrownBy(() -> {
@@ -82,13 +82,13 @@ public class TableServiceTest {
 	@Test
 	void changeEmpty() {
 		// given
-		given(orderTableDao.findById(anyLong())).willReturn(Optional.of(orderTable));
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
 		given(orderTable.getTableGroupId()).willReturn(null);
-		given(orderDao.existsByOrderTableIdAndOrderStatusIn(anyLong(), anyList())).willReturn(false);
+		given(orderRepository.existsByOrderTableIdAndOrderStatusIn(anyLong(), anyList())).willReturn(false);
 		given(orderTable.isEmpty()).willReturn(true);
 
 		// when
-		when(orderTableDao.save(orderTable)).thenReturn(orderTable);
+		when(orderTableRepository.save(orderTable)).thenReturn(orderTable);
 
 		// then
 		assertThat(tableService.changeEmpty(anyLong(), orderTable).isEmpty()).isTrue();
@@ -113,7 +113,7 @@ public class TableServiceTest {
 		given(orderTable.getNumberOfGuests()).willReturn(2);
 
 		// when
-		when(orderTableDao.findById(anyLong())).thenThrow(IllegalArgumentException.class);
+		when(orderTableRepository.findById(anyLong())).thenThrow(IllegalArgumentException.class);
 
 		// then
 		assertThatThrownBy(() -> {
@@ -126,7 +126,7 @@ public class TableServiceTest {
 	void changeNumberOfGuestEmptyOrderTable() {
 		// given
 		given(orderTable.getNumberOfGuests()).willReturn(2);
-		given(orderTableDao.findById(anyLong())).willReturn(Optional.of(orderTable));
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
 
 		// when
 		when(orderTable.isEmpty()).thenReturn(true);
@@ -142,11 +142,11 @@ public class TableServiceTest {
 	void changeNumberOfGuests() {
 		// given
 		given(orderTable.getNumberOfGuests()).willReturn(2);
-		given(orderTableDao.findById(anyLong())).willReturn(Optional.of(orderTable));
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
 		given(orderTable.isEmpty()).willReturn(false);
 
 		// when
-		when(orderTableDao.save(orderTable)).thenReturn(orderTable);
+		when(orderTableRepository.save(orderTable)).thenReturn(orderTable);
 
 		// then
 		assertThat(tableService.changeNumberOfGuests(orderTable.getId(), orderTable).getNumberOfGuests()).isEqualTo(2);

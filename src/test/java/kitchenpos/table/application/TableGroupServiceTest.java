@@ -13,9 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import kitchenpos.order.domain.OrderDao;
+import kitchenpos.order.domain.OrderRepository;
 import kitchenpos.table.domain.OrderTable;
-import kitchenpos.table.domain.OrderTableDao;
+import kitchenpos.table.domain.OrderTableRepository;
 import kitchenpos.table.domain.TableGroup;
 import kitchenpos.table.domain.TableGroupDao;
 
@@ -24,10 +24,10 @@ import kitchenpos.table.domain.TableGroupDao;
 class TableGroupServiceTest {
 
 	@Mock
-	OrderDao orderDao;
+	OrderRepository orderRepository;
 
 	@Mock
-	OrderTableDao orderTableDao;
+	OrderTableRepository orderTableRepository;
 
 	@Mock
 	TableGroupDao tableGroupDao;
@@ -72,7 +72,7 @@ class TableGroupServiceTest {
 		given(tableGroup.getOrderTables()).willReturn(Arrays.asList(orderTable, orderTable));
 
 		// when
-		when(orderTableDao.findAllByIdIn(anyList())).thenReturn(Collections.emptyList());
+		when(orderTableRepository.findAllByIdIn(anyList())).thenReturn(Collections.emptyList());
 
 		// then
 		assertThatThrownBy(() -> {
@@ -85,7 +85,7 @@ class TableGroupServiceTest {
 	void createTableGroupEmptyOrderTable() {
 		// given
 		given(tableGroup.getOrderTables()).willReturn(Arrays.asList(orderTable, orderTable));
-		given(orderTableDao.findAllByIdIn(anyList())).willReturn(Arrays.asList(orderTable, orderTable));
+		given(orderTableRepository.findAllByIdIn(anyList())).willReturn(Arrays.asList(orderTable, orderTable));
 
 		// when
 		when((orderTable.isEmpty())).thenReturn(false);
@@ -101,7 +101,7 @@ class TableGroupServiceTest {
 	void createTableGroup() {
 		// given
 		given(tableGroup.getOrderTables()).willReturn(Arrays.asList(orderTable, orderTable));
-		given(orderTableDao.findAllByIdIn(anyList())).willReturn(Arrays.asList(orderTable, orderTable));
+		given(orderTableRepository.findAllByIdIn(anyList())).willReturn(Arrays.asList(orderTable, orderTable));
 		given(orderTable.isEmpty()).willReturn(true);
 		given(orderTable.getTableGroupId()).willReturn(null);
 
@@ -116,7 +116,7 @@ class TableGroupServiceTest {
 	@Test
 	void unGroupOrderStatusNotComplement() {
 		// when
-		when(orderDao.existsByOrderTableIdInAndOrderStatusIn(anyList(),
+		when(orderRepository.existsByOrderTableIdInAndOrderStatusIn(anyList(),
 			anyList())).thenReturn(true);
 
 		// then
@@ -129,9 +129,9 @@ class TableGroupServiceTest {
 	@Test
 	void unGroup() {
 		// given
-		given(orderTableDao.findAllByTableGroupId(anyLong())).willReturn(Arrays.asList(orderTable, orderTable));
+		given(orderTableRepository.findAllByTableGroupId(anyLong())).willReturn(Arrays.asList(orderTable, orderTable));
 		given(orderTable.getTableGroupId()).willReturn(null);
-		given(orderTableDao.save(orderTable)).willReturn(orderTable);
+		given(orderTableRepository.save(orderTable)).willReturn(orderTable);
 
 		// when
 		tableGroupService.ungroup(tableGroup.getId());

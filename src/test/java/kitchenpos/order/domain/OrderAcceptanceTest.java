@@ -23,6 +23,9 @@ import kitchenpos.menu.domain.MenuProducts;
 import kitchenpos.menu.dto.MenuGroupResponse;
 import kitchenpos.menu.dto.MenuProductRequest;
 import kitchenpos.menu.dto.MenuResponse;
+import kitchenpos.order.dto.OrderRequest;
+import kitchenpos.order.dto.OrderResponse;
+import kitchenpos.order.dto.OrderStatusRequest;
 import kitchenpos.product.dto.ProductResponse;
 import kitchenpos.table.domain.OrderTable;
 
@@ -53,7 +56,7 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문을_생성한다() {
 		// given
-		Order 주문_요청값 = 주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2));
+		OrderRequest 주문_요청값 = 주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2L));
 
 		// when
 		ExtractableResponse<Response> response = 주문_요청(주문_요청값);
@@ -65,7 +68,7 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문할_메뉴가_비어있는_경우_주문_생성에_실패한다() {
 		// given
-		Order 주문_요청값 = 주문_요청값_생성(주문_테이블.getId(), Collections.EMPTY_LIST);
+		OrderRequest 주문_요청값 = 주문_요청값_생성(주문_테이블.getId(), Collections.EMPTY_LIST);
 
 		// when
 		ExtractableResponse<Response> response = 주문_요청(주문_요청값);
@@ -77,7 +80,7 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문할_메뉴가_존재하지_않은_경우_주문_생성에_실패한다() {
 		// given
-		Order 주문_요청값 = 주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(없는_메뉴, 2));
+		OrderRequest 주문_요청값 = 주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(없는_메뉴, 2L));
 
 		// when
 		ExtractableResponse<Response> response = 주문_요청(주문_요청값);
@@ -89,7 +92,7 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문할_테이블이_존재하지_않을_경우_주문_생성에_실패한다() {
 		// given
-		Order 주문_요청값 = 주문_요청값_생성(존재하지_않는_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2));
+		OrderRequest 주문_요청값 = 주문_요청값_생성(존재하지_않는_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2L));
 
 		// when
 		ExtractableResponse<Response> response = 주문_요청(주문_요청값);
@@ -101,7 +104,7 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문할_테이블이_빈_상태인_경우_주문_생성에_실패한다() {
 		// given
-		Order 주문_요청값 = 주문_요청값_생성(빈_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2));
+		OrderRequest 주문_요청값 = 주문_요청값_생성(빈_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2L));
 
 		// when
 		ExtractableResponse<Response> response = 주문_요청(주문_요청값);
@@ -113,7 +116,7 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문_목록을_조회한다() {
 		// given
-		Order 생성된_주문 = 주문이_생성_되어_있음(주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2)));
+		OrderResponse 생성된_주문 = 주문이_생성_되어_있음(주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2L)));
 
 		// when
 		ExtractableResponse<Response> response = 주문_목록_조회_요청();
@@ -125,11 +128,11 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문_상태를_변경한다() {
 		// given
-		Order 생성된_주문 = 주문이_생성_되어_있음(주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2)));
-		생성된_주문.setOrderStatus(OrderStatus.MEAL.name());
+		OrderResponse 생성된_주문 = 주문이_생성_되어_있음(주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2L)));
+		OrderStatusRequest 주문_변경_요청값 = OrderStatusRequest.from(OrderStatus.MEAL);
 
 		// when
-		ExtractableResponse<Response> response = 주문_상태_변경_요청(생성된_주문);
+		ExtractableResponse<Response> response = 주문_상태_변경_요청(생성된_주문.getId(), 주문_변경_요청값);
 
 		// then
 		주문_상태가_변경됨(response);
@@ -138,10 +141,10 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문이_존재하지_않은_경우_주문_상태_변경에_실패한다() {
 		// given
-		존재하지_않는_주문.setOrderStatus(OrderStatus.MEAL.name());
+		OrderStatusRequest 주문_변경_요청값 = OrderStatusRequest.from(OrderStatus.MEAL);
 
 		// when
-		ExtractableResponse<Response> response = 주문_상태_변경_요청(존재하지_않는_주문);
+		ExtractableResponse<Response> response = 주문_상태_변경_요청(존재하지_않는_주문.getId(), 주문_변경_요청값);
 
 		// then
 		주문_상태_변경에_실패함(response);
@@ -150,11 +153,12 @@ class OrderAcceptanceTest extends AcceptanceTest {
 	@Test
 	void 주문_상태가_완료인_경우_주문_상태_변경에_실패한다() {
 		// given
-		Order 생성된_주문 = 주문이_생성_되어_있음(주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2)));
-		Order 완료된_주문 = 주문_상태가_변경_되어_있음(생성된_주문, OrderStatus.COMPLETION.name());
+		OrderResponse 생성된_주문 = 주문이_생성_되어_있음(주문_요청값_생성(주문_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2L)));
+		OrderResponse 완료된_주문 = 주문_상태가_변경_되어_있음(생성된_주문.getId(), OrderStatus.COMPLETION);
+		OrderStatusRequest 주문_변경_요청값 = OrderStatusRequest.from(OrderStatus.MEAL);
 
 		// when
-		ExtractableResponse<Response> response = 주문_상태_변경_요청(완료된_주문);
+		ExtractableResponse<Response> response = 주문_상태_변경_요청(완료된_주문.getId(), 주문_변경_요청값);
 
 		// then
 		주문_상태_변경에_실패함(response);

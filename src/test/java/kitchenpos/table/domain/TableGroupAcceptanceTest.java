@@ -21,8 +21,8 @@ import kitchenpos.AcceptanceTest;
 import kitchenpos.menu.dto.MenuGroupResponse;
 import kitchenpos.menu.dto.MenuProductRequest;
 import kitchenpos.menu.dto.MenuResponse;
-import kitchenpos.order.domain.Order;
 import kitchenpos.order.domain.OrderStatus;
+import kitchenpos.order.dto.OrderResponse;
 import kitchenpos.product.dto.ProductResponse;
 
 @DisplayName("인수테스트 : 테이블 그룹(단체지정) 관련")
@@ -121,8 +121,8 @@ class TableGroupAcceptanceTest extends AcceptanceTest {
 	void 주문_테이블_중_주문의_상태가_완료가_아닌_경우_테이블_그룹_해체에_실패한다() {
 		// given
 		TableGroup 생성된_테이블_그룹 = 테이블_그룹이_생성_되어있음(테이블_그룹_요청값_생성(Arrays.asList(생성된_테이블_1, 생성된_테이블_2)));
-		Order 조리_중인_주문 = 주문이_생성_되어_있음(주문_요청값_생성(생성된_테이블_1.getId(), 주문_메뉴_생성(불닭_메뉴, 2)));
-		조리_중인_주문.setOrderStatus(OrderStatus.COOKING.name());
+		OrderResponse 조리_중인_주문 = 주문이_생성_되어_있음(주문_요청값_생성(생성된_테이블_1.getId(), 주문_메뉴_생성(불닭_메뉴, 2L)));
+		주문_상태가_변경_되어_있음(조리_중인_주문.getId(), OrderStatus.COOKING);
 		생성된_테이블_1.setEmpty(false);
 		테이블_상태_변경_요청(생성된_테이블_1.getId(), 생성된_테이블_1);
 

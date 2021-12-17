@@ -19,8 +19,8 @@ import kitchenpos.AcceptanceTest;
 import kitchenpos.menu.dto.MenuGroupResponse;
 import kitchenpos.menu.dto.MenuProductRequest;
 import kitchenpos.menu.dto.MenuResponse;
-import kitchenpos.order.domain.Order;
 import kitchenpos.order.domain.OrderStatus;
+import kitchenpos.order.dto.OrderResponse;
 import kitchenpos.product.dto.ProductResponse;
 
 @DisplayName("인수테스트 : 테이블 관련")
@@ -78,9 +78,8 @@ class TableAcceptanceTest extends AcceptanceTest {
 	void 테이블의_주문_상태가_완료가_아닐_경우_테이블_상태_변경에_실패한다() {
 		// given
 		OrderTable 생성된_테이블 = 테이블이_생성_되어있음(테이블_요청값_생성(1, false));
-		Order 조리_중인_주문 = 주문이_생성_되어_있음(주문_요청값_생성(생성된_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2)));
-		조리_중인_주문.setOrderStatus(OrderStatus.COOKING.name());
-		주문_상태_변경_요청(조리_중인_주문);
+		OrderResponse 조리_중인_주문 = 주문이_생성_되어_있음(주문_요청값_생성(생성된_테이블.getId(), 주문_메뉴_생성(불닭_메뉴, 2L)));
+		주문_상태가_변경_되어_있음(조리_중인_주문.getId(), OrderStatus.COOKING);
 		OrderTable 변경할_상태_요청값 = 테이블_요청값_생성(1, true);
 
 		// when
