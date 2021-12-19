@@ -1,0 +1,168 @@
+package kitchenpos.order.application;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
+
+import java.util.Collections;
+import java.util.Optional;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import kitchenpos.order.domain.OrderRepository;
+import kitchenpos.order.domain.OrderTable;
+import kitchenpos.order.domain.OrderTableRepository;
+import kitchenpos.order.dto.OrderTableRequest;
+
+@DisplayName("테이블 : 서비스 테스트")
+@ExtendWith(MockitoExtension.class)
+public class TableServiceTest {
+
+	@Mock
+	OrderRepository orderRepository;
+
+	@Mock
+	OrderTableRepository orderTableRepository;
+
+	@Mock
+	OrderTable orderTable;
+
+	@InjectMocks
+	private TableService tableService;
+
+	private OrderTableRequest orderTableRequest;
+
+	@DisplayName("테이블을 생성하는 테스트")
+	@Test
+	void createTable() {
+		// given
+		orderTableRequest = OrderTableRequest.of(10, true);
+
+		// when
+		when(orderTableRepository.save(orderTableRequest.toEntity())).thenReturn(orderTable);
+
+		// then
+		assertThat(tableService.create(orderTableRequest)).isEqualTo(orderTable);
+	}
+
+	@DisplayName("테이블 목록을 조회하는 테스트")
+	@Test
+	void getList() {
+		// when
+		when(orderTableRepository.findAll()).thenReturn(Collections.singletonList(orderTable));
+
+		// then
+		assertThat(tableService.list()).containsExactly(orderTable);
+	}
+
+	@DisplayName("상태를 변경하려는 테이블이 존재하지 않을 경우 예외처리 테스트")
+	@Test
+	void changeEmptyUnknownOrderTable() {
+		// given
+		orderTableRequest = OrderTableRequest.of(10, true);
+
+		// when // then
+		assertThatThrownBy(() -> {
+			tableService.changeEmpty(anyLong(), orderTableRequest);
+		}).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@DisplayName("상태를 변경하려는 테이블의 주문 상태가 완료가 아닌 경우 예외처리 테스트")
+	@Test
+	void changeEmptyOrderStatusNotCompletion() {
+		// given
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
+		given(orderTable.getTableGroup()).willReturn(null);
+		orderTableRequest = OrderTableRequest.of(10, true);
+
+		// when
+		when(orderRepository.existsByOrderTableIdAndOrderStatusIn(anyLong(), anyList())).thenReturn(true);
+
+		// then
+		assertThatThrownBy(() -> {
+			tableService.changeEmpty(orderTable.getId(), orderTableRequest);
+		}).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@DisplayName("테이블의 상태를 변경하는 테스트")
+	@Test
+	void changeEmpty() {
+		// given
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
+		given(orderTable.getTableGroup()).willReturn(null);
+		given(orderRepository.existsByOrderTableIdAndOrderStatusIn(anyLong(), anyList())).willReturn(false);
+		given(orderTable.isEmpty()).willReturn(true);
+		orderTableRequest = OrderTableRequest.of(10, true);
+
+		// when
+		when(orderTableRepository.save(orderTable)).thenReturn(orderTable);
+
+		// then
+		assertThat(tableService.changeEmpty(anyLong(), orderTableRequest).isEmpty()).isTrue();
+	}
+
+	@DisplayName("변경하려는 손님 인원이 0미만일 경우 예외처리 테스트")
+	@Test
+	void changeNumberOfGuestUnderZeroGuest() {
+		// given
+		orderTableRequest = OrderTableRequest.of(-1, true);
+
+		// when then
+		assertThatThrownBy(() -> {
+			tableService.changeNumberOfGuests(orderTable.getId(), orderTableRequest);
+		}).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@DisplayName("손님 인원을 변경하려는 테이블이 존재하지 않은 경우 예외처리 테스트")
+	@Test
+	void changeNumberOfGuestUnknownOrderTable() {
+		// given
+		orderTableRequest = OrderTableRequest.of(10, true);
+
+		// when
+		when(orderTableRepository.findById(anyLong())).thenThrow(IllegalArgumentException.class);
+
+		// then
+		assertThatThrownBy(() -> {
+			tableService.changeNumberOfGuests(orderTable.getId(), orderTableRequest);
+		}).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@DisplayName("손님 인원을 변경하려는 테이블이 비어있는 상태인 경우 예외처리 테스트")
+	@Test
+	void changeNumberOfGuestEmptyOrderTable() {
+		// given
+		given(orderTable.getNumberOfGuests()).willReturn(2);
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
+		orderTableRequest = OrderTableRequest.of(10, true);
+
+		// when
+		when(orderTable.isEmpty()).thenReturn(true);
+
+		// then
+		assertThatThrownBy(() -> {
+			tableService.changeNumberOfGuests(orderTable.getId(), orderTableRequest);
+		}).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@DisplayName("테이블의 손님 인원을 변경하는 테스트")
+	@Test
+	void changeNumberOfGuests() {
+		// given
+		given(orderTable.getNumberOfGuests()).willReturn(2);
+		given(orderTableRepository.findById(anyLong())).willReturn(Optional.of(orderTable));
+		given(orderTable.isEmpty()).willReturn(false);
+		orderTableRequest = OrderTableRequest.of(10, true);
+
+		// when
+		when(orderTableRepository.save(orderTable)).thenReturn(orderTable);
+
+		// then
+		assertThat(
+			tableService.changeNumberOfGuests(orderTable.getId(), orderTableRequest).getNumberOfGuests()).isEqualTo(2);
+	}
+}
