@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import kitchenpos.table.dto.OrderTableRequest;
+import kitchenpos.table.dto.OrderTableResponse;
 
 public class TableAcceptanceStaticTest {
 
@@ -19,8 +21,8 @@ public class TableAcceptanceStaticTest {
 	public static final String EMPTY_PATH = "/empty";
 	public static final String NUMBER_OF_GUESTS = "/number-of-guests";
 
-	public static OrderTable 테이블이_생성_되어있음(OrderTable params) {
-		return 테이블_생성_요청(params).as(OrderTable.class);
+	public static OrderTableResponse 테이블이_생성_되어있음(OrderTableRequest params) {
+		return 테이블_생성_요청(params).as(OrderTableResponse.class);
 	}
 
 	public static ExtractableResponse<Response> 테이블_목록을_조회함() {
@@ -33,23 +35,20 @@ public class TableAcceptanceStaticTest {
 
 	public static void 테이블_목록이_조회됨(ExtractableResponse<Response> response, List<Long> idList) {
 		List<Long> responseIdList = response.body()
-			.jsonPath().getList(".", OrderTable.class)
+			.jsonPath().getList(".", OrderTableResponse.class)
 			.stream()
-			.map(OrderTable::getId)
+			.map(OrderTableResponse::getId)
 			.collect(Collectors.toList());
 
 		assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
 		assertThat(responseIdList).containsAnyElementsOf(idList);
 	}
 
-	public static OrderTable 테이블_요청값_생성(int numberOfGuest, boolean empty) {
-		OrderTable emptyTable = new OrderTable();
-		emptyTable.setNumberOfGuests(numberOfGuest);
-		emptyTable.setEmpty(empty);
-		return emptyTable;
+	public static OrderTableRequest 테이블_요청값_생성(int numberOfGuest, boolean empty) {
+		return OrderTableRequest.of(numberOfGuest, empty);
 	}
 
-	public static ExtractableResponse<Response> 테이블_생성_요청(OrderTable params) {
+	public static ExtractableResponse<Response> 테이블_생성_요청(OrderTableRequest params) {
 		return RestAssured.given().log().all()
 			.contentType(MediaType.APPLICATION_JSON_VALUE)
 			.body(params)
@@ -63,7 +62,7 @@ public class TableAcceptanceStaticTest {
 		assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
 	}
 
-	public static ExtractableResponse<Response> 테이블_상태_변경_요청(Long id, OrderTable params) {
+	public static ExtractableResponse<Response> 테이블_상태_변경_요청(Long id, OrderTableRequest params) {
 		return RestAssured.given().log().all()
 			.contentType(MediaType.APPLICATION_JSON_VALUE)
 			.body(params)
@@ -85,7 +84,7 @@ public class TableAcceptanceStaticTest {
 		assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
 	}
 
-	public static ExtractableResponse<Response> 테이블_손님_인원_변경_요청(Long id, OrderTable params) {
+	public static ExtractableResponse<Response> 테이블_손님_인원_변경_요청(Long id, OrderTableRequest params) {
 		return RestAssured.given().log().all()
 			.contentType(MediaType.APPLICATION_JSON_VALUE)
 			.body(params)

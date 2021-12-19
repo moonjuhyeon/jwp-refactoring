@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import kitchenpos.table.dto.OrderTableResponse;
 
 public class TableGroupAcceptanceStaticTest {
 
@@ -42,7 +43,7 @@ public class TableGroupAcceptanceStaticTest {
 		assertThat(response.statusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
 	}
 
-	public static TableGroup 테이블_그룹_요청값_생성(List<OrderTable> orderTables) {
+	public static TableGroup 테이블_그룹_요청값_생성(List<OrderTableResponse> orderTables) {
 		TableGroup tableGroup = new TableGroup();
 		tableGroup.setOrderTables(orderTables);
 		return tableGroup;
